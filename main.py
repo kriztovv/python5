@@ -16,3 +16,5 @@ def weather(temperatures):
         print(str(-i * 5 + 30).rjust(3) + rendTemp(i))
     print("     mo  th  we  th  fr  sa  su")
 weather(temperature[])
+
+#bruh
