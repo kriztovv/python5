@@ -26,5 +26,4 @@ def weather(temperatures):
     print("\n".join(result))
     print("     mo  th  we  th  fr  sa  su")
 
-
 weather(temperature)
