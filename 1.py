@@ -1,23 +1,26 @@
 import random
+import replit
+
+
 
 temperature = [random.randint(-30, 30) for _ in range(7)]
 
 
 def rendtemp(i):
-    temp = ""  # Initialize temp as an empty string for this row
+    temp = ""
     for j in range(7):
         if temperature[j] > -i * 5 + 25:
             temp += "   #"
         else:
             temp += "    "
-    return temp  # Return the final string for this row
+    return temp
 
 
 def weather(temperatures):
-    result = []  # Collect all rows to print at once
+    result = []
     for i in range(13):
         row = str(-i * 5 + 30).rjust(3) + rendtemp(i)
-        result.append(row)  # Add the row to the result list
+        result.append(row)
 
     # Print the entire result
     print("\n".join(result))
