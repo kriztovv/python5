@@ -1,6 +1,7 @@
 import random
-width = 70
-height = 20
+screenwidth = int(70/3)
+screenheight = 20
+
 title = """
 ######################################################################
 #           ____    ____       _       ________  ________            #
@@ -26,63 +27,71 @@ title = """
 print(title)
 input()
 
-import random
 
+def generate_maze(width, height):
+    # Create a maze matrix filled with path characters "□"
+    maze = [["□" for _ in range(width)] for _ in range(height)]
+    maze2 = [["□" for _ in range(width)] for _ in range(height)]
+    maze3 = [["□" for _ in range(width)] for _ in range(height)]
 
-def generate_maze(width=70, height=20):
-    # Adjust dimensions to be odd for proper maze carving.
-    if width % 2 == 0:
-        width -= 1
-    if height % 2 == 0:
-        height -= 1
+    # Create the initial pattern with walls and paths.
+    # Walls are drawn with "■" and paths with "□"
+    for y in range(height):
+        for x in range(width):
+            if y % 3 == 0:
+                if x % 3 == 0:
+                    maze[y][x] = " ■ "  # Wall
+                else:
+                    maze[y][x] = " □ "  # Path
+            else:
+                maze[y][x] = " □ "  # Path
 
-    # Create a grid filled with walls.
-    maze = [['#'] * width for _ in range(height)]
+    for y in range(height):
+        for x in range(width):
+            if y % 3 == 0:
+                if x % 3 == 0:
+                    maze2[y][x] = " ■ "  # Wall
+                else:
+                    maze2[y][x] = " □ "  # Path
+            else:
+                maze2[y][x] = " □ "  # Path
 
-    # Start at position (1, 1); this is our first path cell.
-    start_x, start_y = 1, 1
-    maze[start_y][start_x] = ' '
+    # Attempt to add some extra random walls
+    for y in range(height):
+        for x in range(width):  # Use 'width' instead of 'width * 3'
+            if maze2[y][x] == " ■ ":
+                rand = random.randint(1, 4)
+                if rand == 1 and x + 1 < width:
+                    maze3[y][x + 1] = " ■ "
+                    maze[y][x + 1] = " ■ "
+                elif rand == 2 and x - 1 >= 0:
+                    maze3[y][x - 1] = " ■ "
+                    maze[y][x - 1] = " ■ "
+                elif rand == 3 and y + 1 < height:
+                    maze3[y + 1][x] = " ■ "
+                    maze[y + 1][x] = " ■ "
+                elif rand == 4 and y - 1 >= 0:
+                    maze3[y - 1][x] = " ■ "
+                    maze[y - 1][x] = " ■ "
 
-    # Define possible movement directions (skipping one cell each time).
-    directions = [(0, 2), (0, -2), (2, 0), (-2, 0)]
-
-    # Use a stack for DFS (depth-first search).
-    stack = [(start_x, start_y)]
-
-    while stack:
-        x, y = stack[-1]
-        neighbors = []
-        for dx, dy in directions:
-            nx, ny = x + dx, y + dy
-            if 0 < nx < width - 1 and 0 < ny < height - 1:
-                if maze[ny][nx] == '#':  # Unvisited cell.
-                    neighbors.append((nx, ny, dx, dy))
-        if neighbors:
-            nx, ny, dx, dy = random.choice(neighbors)
-            maze[y + dy // 2][x + dx // 2] = ' '  # Remove wall between.
-            maze[ny][nx] = ' '
-            stack.append((nx, ny))
-        else:
-            stack.pop()
-
+    for y in range(height):
+        for x in range(width):  # Use 'width' instead of 'width * 3'
+            if maze3[y][x] == " ■ ":
+                rand = random.randint(1, 4)
+                if rand == 1 and x + 1 < width:
+                    maze[y][x + 1] = " ■ "
+                elif rand == 2 and x - 1 >= 0:
+                    maze[y][x - 1] = " ■ "
+                elif rand == 3 and y + 1 < height:
+                    maze[y + 1][x] = " ■ "
+                elif rand == 4 and y - 1 >= 0:
+                    maze[y - 1][x] = " ■ "
     return maze
 
-
-def print_maze(maze):
-    # Using Unicode block for walls and ANSI escape codes for color.
-    # ANSI code "\033[1;37m" sets bold white; "\033[0m" resets formatting.
-    for row in maze:
-        line = ""
-        for cell in row:
-            if cell == '#':
-                # Print walls as a bold white full block.
-                line += "\033[1;37m█\033[0m"
-            else:
-                # Print paths as empty space.
-                line += " "
-        print(line)
-
+def print_maze(matrix):
+    for row in matrix:
+        print(''.join(row))  # Print each row as a single string
 
 if __name__ == '__main__':
-    maze = generate_maze(70, 20)
+    maze = generate_maze(screenwidth, screenheight)
     print_maze(maze)
