@@ -1,6 +1,4 @@
 import random
-import replit
-
 
 
 temperature = [random.randint(-30, 30) for _ in range(7)]
