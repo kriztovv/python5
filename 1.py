@@ -1,6 +1,6 @@
 import random
 
-
+#nahodne pocasi
 temperature = [random.randint(-30, 30) for _ in range(7)]
 
 
@@ -20,7 +20,6 @@ def weather(temperatures):
         row = str(-i * 5 + 30).rjust(3) + rendtemp(i)
         result.append(row)
 
-    # Print the entire result
     print("\n".join(result))
     print("     mo  th  we  th  fr  sa  su")
 
