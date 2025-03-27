@@ -98,25 +98,25 @@ input("Stiskněte Enter...")
 
 def generate_maze(width, height):
     # Vytvoříme matici bludiště naplněnou dlaždicemi cesty.
-    maze = [["  □  " for _ in range(width)] for _ in range(height)]
+    maze = [[" □ " for _ in range(width)] for _ in range(height)]
     # Základní vzor: Na pozicích, kde jsou y i x dělitelné 3, umístíme zeď.
     for y in range(height):
         for x in range(width):
             if y % 3 == 0 and x % 3 == 0:
-                maze[y][x] = "  ■  "  # Zeď
+                maze[y][x] = " ■ "  # Zeď
     # Náhodně přidáme extra zdi.
     for y in range(height):
         for x in range(width):
-            if maze[y][x] == "  ■  ":
+            if maze[y][x] == " ■ ":
                 rand = random.randint(1, 4)
                 if rand == 1 and x + 1 < width:
-                    maze[y][x + 1] = "  ■  "
+                    maze[y][x + 1] = " ■ "
                 elif rand == 2 and x - 1 >= 0:
-                    maze[y][x - 1] = "  ■  "
+                    maze[y][x - 1] = " ■ "
                 elif rand == 3 and y + 1 < height:
-                    maze[y + 1][x] = "  ■  "
+                    maze[y + 1][x] = " ■ "
                 elif rand == 4 and y - 1 >= 0:
-                    maze[y - 1][x] = "  ■  "
+                    maze[y - 1][x] = " ■ "
     return maze
 
 def find_open_corner(maze, width, height, corner):
@@ -131,7 +131,7 @@ def find_open_corner(maze, width, height, corner):
         x_range, y_range = range(width - 1, width - width // 3 - 1, -1), range(height - 1, height - height // 3 - 1, -1)
     for y in y_range:
         for x in x_range:
-            if maze[y][x] == "  □  ":
+            if maze[y][x] == " □ ":
                 return x, y
     return None, None
 
@@ -141,7 +141,7 @@ def find_random_open_tile(maze, width, height, exclude_positions):
     while attempts < 1000:
         x = random.randint(0, width - 1)
         y = random.randint(0, height - 1)
-        if maze[y][x] == "  □  " and (x, y) not in exclude_positions:
+        if maze[y][x] == " □ " and (x, y) not in exclude_positions:
             return x, y
         attempts += 1
     return None, None
@@ -169,22 +169,22 @@ def print_maze_with_entities(maze, player_x, player_y, target_x, target_y, traps
             entity = None
             # Priority vykreslování: hráč > cíl > past > nepřítel > potion.
             if x == player_x and y == player_y:
-                entity = "\033[94m  ■  \033[0m"  # Hráč (modře)
+                entity = "\033[94m ■ \033[0m"  # Hráč (modře)
             elif x == target_x and y == target_y:
-                entity = "\033[93m  ■  \033[0m"  # Cíl (žlutě)
+                entity = "\033[93m ■ \033[0m"  # Cíl (žlutě)
             elif (x, y) in traps:
-                entity = "\033[91m  ■  \033[0m"  # Past (červeně)
+                entity = "\033[91m ■ \033[0m"  # Past (červeně)
             elif any(ex == x and ey == y for (ex, ey, _) in enemies):
-                entity = "\033[95m  ■  \033[0m"  # Nepřítel (fialově)
+                entity = "\033[95m ■ \033[0m"  # Nepřítel (fialově)
             elif (x, y) in potions:
-                entity = "\033[92m  P  \033[0m"  # Potion (zeleně)
+                entity = "\033[92m P \033[0m"  # Potion (zeleně)
             if entity is not None:
                 row_str += entity
             else:
                 if fog_of_war_enabled:
                     modifier = fog_modifier(x, y, player_x, player_y)
                     if modifier is None:
-                        row_str += "  .  "
+                        row_str += " . "
                     else:
                         row_str += maze[y][x]
                 else:
@@ -206,7 +206,7 @@ def move_enemies(enemies, player_x, player_y, maze, width, height):
                 dx = 1
             new_ex = ex + dx
             new_ey = ey
-            if 0 <= new_ex < width and maze[ey][new_ex] != "  ■  ":
+            if 0 <= new_ex < width and maze[ey][new_ex] != " ■ ":
                 new_enemies.append((new_ex, ey, 'v'))
             else:
                 new_enemies.append((ex, ey, 'v'))
@@ -218,7 +218,7 @@ def move_enemies(enemies, player_x, player_y, maze, width, height):
                 dy = 1
             new_ey = ey + dy
             new_ex = ex
-            if 0 <= new_ey < height and maze[new_ey][ex] != "  ■  ":
+            if 0 <= new_ey < height and maze[new_ey][ex] != " ■ ":
                 new_enemies.append((ex, new_ey, 'h'))
             else:
                 new_enemies.append((ex, ey, 'h'))
@@ -293,7 +293,7 @@ while True:
     else:
         continue
     if 0 <= new_x < screen_width and 0 <= new_y < screen_height:
-        if maze[new_y][new_x] != "  ■  ":
+        if maze[new_y][new_x] != " ■ ":
             player_x, player_y = new_x, new_y
 
     # Pokud hráč narazí na lektvar, sebereme ho a obnovíme 1 život.
