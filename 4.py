@@ -4,6 +4,7 @@ import math
 import time
 import json
 
+# Uložení stavu hry do souboru
 def save_game():
     filename = input("Zadejte název souboru pro uložení (bez koncovky .txt): ").strip() + ".txt"
     state = {
@@ -26,6 +27,7 @@ def save_game():
         json.dump(state, f)
     print(f"Hra uložena do souboru {filename}.")
 
+# Načtení stavu hry ze souboru
 def load_game():
     filename = input("Zadejte název souboru pro načtení (včetně přípony .txt): ").strip()
     with open(filename, "r", encoding="utf-8") as f:
@@ -33,7 +35,7 @@ def load_game():
     print(f"Hra načtena ze souboru {filename}.")
     return state
 
-# ASCII art obrazovky
+# ascii art obrazovky
 start_screen = """
 ######################################################################
 #           ____    ____       _       ________  ________            #
@@ -97,11 +99,14 @@ game_over_screen = """
 """
 
 def generate_maze(width, height):
+    # Vytvoříme matici bludiště naplněnou dlaždicemi cesty.
     maze = [[" □ " for _ in range(width)] for _ in range(height)]
+    # Základní vzor: Na pozicích, kde jsou y i x dělitelné 3, umístíme zeď.
     for y in range(height):
         for x in range(width):
             if y % 3 == 0 and x % 3 == 0:
-                maze[y][x] = " ■ "
+                maze[y][x] = " ■ "  # Zeď
+    # Náhodně přidáme extra zdi.
     for y in range(height):
         for x in range(width):
             if maze[y][x] == " ■ ":
@@ -117,13 +122,14 @@ def generate_maze(width, height):
     return maze
 
 def find_open_corner(maze, width, height, corner):
+    # Najde otevřenou dlaždici cesty v jednom ze čtyř rohů.
     if corner == "top-left":
         x_range, y_range = range(0, width // 3), range(0, height // 3)
     elif corner == "top-right":
         x_range, y_range = range(width - 1, width - width // 3 - 1, -1), range(0, height // 3)
     elif corner == "bottom-left":
         x_range, y_range = range(0, width // 3), range(height - 1, height - height // 3 - 1, -1)
-    else:
+    else:  # "bottom-right"
         x_range, y_range = range(width - 1, width - width // 3 - 1, -1), range(height - 1, height - height // 3 - 1, -1)
     for y in y_range:
         for x in x_range:
@@ -132,6 +138,7 @@ def find_open_corner(maze, width, height, corner):
     return None, None
 
 def find_random_open_tile(maze, width, height, exclude_positions):
+    # Najde náhodnou otevřenou dlaždici, která není v exclude_positions (množina dvojic (x, y)).
     attempts = 0
     while attempts < 1000:
         x = random.randint(0, width - 1)
@@ -142,6 +149,12 @@ def find_random_open_tile(maze, width, height, exclude_positions):
     return None, None
 
 def fog_modifier(x, y, player_x, player_y):
+    """
+    výpočet vzdálenosti od hráče.
+    Pokud je dlaždice v těsné blízkosti (vzdálenost < 4), vrátí prázdný řetězec.
+    Jinak vrátí None, což signalizuje, že se má zobrazit tečka.
+    (Viditelná oblast byla zdvojnásobena oproti předchozí verzi.)
+    """
     d = math.sqrt((x - player_x) ** 2 + (y - player_y) ** 2)
     if d < 4:
         return ""
@@ -149,21 +162,24 @@ def fog_modifier(x, y, player_x, player_y):
         return None
 
 def print_maze_with_entities(maze, player_x, player_y, target_x, target_y, traps, enemies, potions, lives):
+    """Vykreslí bludiště s entitami a aplikuje fog of war, pokud je zapnut.
+       Navíc zobrazí aktuální počet životů."""
     print("Životy:", lives)
     for y in range(len(maze)):
         row_str = ""
         for x in range(len(maze[y])):
             entity = None
+            # Priority vykreslování: hráč > cíl > past > nepřítel > potion.
             if x == player_x and y == player_y:
-                entity = "\033[94m ■ \033[0m"
+                entity = "\033[94m ■ \033[0m"  # Hráč (modře)
             elif x == target_x and y == target_y:
-                entity = "\033[93m ■ \033[0m"
+                entity = "\033[93m ■ \033[0m"  # Cíl (žlutě)
             elif (x, y) in traps:
-                entity = "\033[91m ■ \033[0m"
+                entity = "\033[91m ■ \033[0m"  # Past (červeně)
             elif any(ex == x and ey == y for (ex, ey, _) in enemies):
-                entity = "\033[95m ■ \033[0m"
+                entity = "\033[95m ■ \033[0m"  # Nepřítel (fialově)
             elif (x, y) in potions:
-                entity = "\033[92m P \033[0m"
+                entity = "\033[92m P \033[0m"  # Potion (zeleně)
             if entity is not None:
                 row_str += entity
             else:
@@ -178,6 +194,10 @@ def print_maze_with_entities(maze, player_x, player_y, target_x, target_y, traps
         print(row_str)
 
 def move_enemies(enemies, player_x, player_y, maze, width, height):
+    """
+    Posune každého nepřítele o jeden krok směrem k hráči podél jedné osy (střídavě horizontálně a vertikálně).
+    Nepřátelé jsou reprezentováni jako trojice (x, y, axis), axis je směr dalšího pohybu.
+    """
     new_enemies = []
     for ex, ey, axis in enemies:
         if axis == 'h':
@@ -191,7 +211,7 @@ def move_enemies(enemies, player_x, player_y, maze, width, height):
                 new_enemies.append((new_ex, ey, 'v'))
             else:
                 new_enemies.append((ex, ey, 'v'))
-        else:
+        else:  # axis == 'v'
             dy = 0
             if player_y < ey:
                 dy = -1
@@ -223,10 +243,10 @@ if not loaded:
     elif size_choice == "3":
         maze_size = 21
     else:
-        maze_size = 17  # volba 2 nebo neplatny vstup
+        maze_size = 17  # volba 2 nebo neplatný vstup
 
     traps_choice = input("Mají být v bludišti pasti? (a/n): ").lower().strip()
-    include_traps = traps_choice == "a"
+    include_traps = traps_choice == "a"  # pokud traps_choice je 'a', pasti budou zapnuté
 
     enemies_choice = input("Mají být v bludišti nepřátelé? (a/n): ").lower().strip()
     include_enemies = enemies_choice == "a"
@@ -242,8 +262,10 @@ if not loaded:
     print(start_screen)
     input("Stiskněte Enter...")
 
+    # Vygenerujeme bludiště.
     maze = generate_maze(screen_width, screen_height)
 
+    # Náhodně vybereme protilehlé rohy pro hráče a cíl.
     corner_choices = [("top-left", "bottom-right"), ("top-right", "bottom-left")]
     player_corner, target_corner = random.choice(corner_choices)
     player_x, player_y = find_open_corner(maze, screen_width, screen_height, player_corner)
@@ -252,6 +274,7 @@ if not loaded:
         print("Chyba: Nelze najít vhodné počáteční pozice.")
         exit()
 
+    # Umístíme pasti, pokud jsou povoleny.
     traps = set()
     if include_traps:
         exclude = {(player_x, player_y), (target_x, target_y)}
@@ -262,6 +285,7 @@ if not loaded:
             traps.add((tx, ty))
             exclude.add((tx, ty))
 
+    # Umístíme nepřátele, pokud jsou povoleni.
     enemies = []
     if include_enemies:
         exclude = {(player_x, player_y), (target_x, target_y)} | traps
@@ -273,14 +297,17 @@ if not loaded:
             enemies.append((ex, ey, axis))
             exclude.add((ex, ey))
 
+    # Umístíme lektvary, které obnoví 1 život.
     potions = set()
-    exclude_p = {(player_x, player_y), (target_x, target_y)} | traps | {(ex, ey) for ex, ey, _ in enemies}
+    exclude_for_potions = {(player_x, player_y), (target_x, target_y)} | traps
+    for ex, ey, _ in enemies:
+        exclude_for_potions.add((ex, ey))
     for _ in range(3):
-        px, py = find_random_open_tile(maze, screen_width, screen_height, exclude_p)
+        px, py = find_random_open_tile(maze, screen_width, screen_height, exclude_for_potions)
         if px is None:
             break
         potions.add((px, py))
-        exclude_p.add((px, py))
+        exclude_for_potions.add((px, py))
 else:
     # načtení proměnných ze stavu
     maze = state['maze']
@@ -302,6 +329,7 @@ else:
 while True:
     print_maze_with_entities(maze, player_x, player_y, target_x, target_y, traps, enemies, potions, lives)
 
+    # Kontrola výhry.
     if player_x == target_x and player_y == target_y:
         print(win_screen)
         break
@@ -327,12 +355,14 @@ while True:
         if maze[new_y][new_x] != " ■ ":
             player_x, player_y = new_x, new_y
 
+    # Pokud hráč narazí na lektvar, sebereme ho a obnovíme 1 život.
     if (player_x, player_y) in potions:
         potions.remove((player_x, player_y))
         lives += 1
         print("Sebral jsi lektvar! Život obnoven, nyní máš", lives, "životů.")
         time.sleep(1)
 
+    # Pokud hráč vstoupí na pole s pastí, ztratí 1 život.
     if (player_x, player_y) in traps:
         lives -= 1
         print("Spadl jsi do pasti! Ztratil jsi 1 život. Zbývá ti", lives, "životů.")
@@ -341,8 +371,10 @@ while True:
             print(game_over_screen)
             break
 
+    # Posun nepřátele.
     enemies = move_enemies(enemies, player_x, player_y, maze, screen_width, screen_height)
 
+    # Kontrola kolize s nepřítelem.
     if any(ex == player_x and ey == player_y for (ex, ey, _) in enemies):
         lives -= 1
         print("Náraz s nepřítelem! Ztratil jsi 1 život. Zbývá ti", lives, "životů.")
